@@ -98,9 +98,9 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const userId = params.get('user_id') || "vopS2odZTP2BLrtfuh3q";
-        const locId = params.get('location_id') || "f2iNHTEYKFfxghZZ1w5I";
-        const contactId = params.get('contact_id') || "Nz3z4dsRbEU1IdiITa4g";
+        const userId = params.get('user_id');
+        const locId = params.get('location_id');
+        const contactId = params.get('contact_id');
         const conversationId = params.get('conversation_id');
         setLocationIdState(locId);
 
