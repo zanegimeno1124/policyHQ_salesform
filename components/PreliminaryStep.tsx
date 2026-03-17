@@ -162,13 +162,17 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
           <button
             onClick={() => { updateField('isPolicyCreatedToday', true); updateField('policyCreatedDate', getLocalTodayString()); }}
             className={`py-2 px-3 rounded-lg font-bold border-2 text-xs transition-all ${
-              formData.isPolicyCreatedToday ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10' : 'border-gray-100 dark:border-gray-800'
+              formData.isPolicyCreatedToday 
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400' 
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
             }`}
           >Yes, today</button>
           <button
             onClick={() => updateField('isPolicyCreatedToday', false)}
             className={`py-2 px-3 rounded-lg font-bold border-2 text-xs transition-all ${
-              !formData.isPolicyCreatedToday ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10' : 'border-gray-100 dark:border-gray-800'
+              !formData.isPolicyCreatedToday 
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400' 
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
             }`}
           >Select date</button>
         </div>

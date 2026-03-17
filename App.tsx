@@ -13,7 +13,9 @@ import {
   UserCheck,
   Shield,
   PieChart,
-  FileCheck
+  FileCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { ProgressBar } from './components/ProgressBar';
 import { QuestionStep } from './components/QuestionStep';
@@ -93,14 +95,27 @@ const App: React.FC = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [formData, setFormData] = useState<SurveyData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const userId = params.get('user_id');
-        const locId = params.get('location_id');
-        const contactId = params.get('contact_id');
+        const userId = params.get('user_id') || "vopS2odZTP2BLrtfuh3q";
+        const locId = params.get('location_id') || "1KuQlZ4tDaBr6ohbhhUf";
+        const contactId = params.get('contact_id') || "AUrhtDdJUEaDSjfDlbjl";
         const conversationId = params.get('conversation_id');
         setLocationIdState(locId);
 
@@ -299,10 +314,17 @@ const App: React.FC = () => {
             <ProgressBar current={currentStepIndex} total={STEPS.length} />
             <div className="mt-3 flex items-center gap-2">
               <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">{currentStep.icon}</div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-base font-bold text-gray-900 dark:text-white leading-tight">{currentStep.title}</h1>
                 <p className="text-[10px] text-gray-500 dark:text-gray-400">{currentStep.description}</p>
               </div>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun className="w-4 h-4 text-yellow-400" /> : <Moon className="w-4 h-4 text-gray-600" />}
+              </button>
             </div>
           </header>
         )}
@@ -311,6 +333,15 @@ const App: React.FC = () => {
           <div className="fade-in">
             {currentStep.id === 'intro' ? (
               <div className="space-y-5 text-center">
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Toggle dark mode"
+                  >
+                    {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+                  </button>
+                </div>
                 <div className="inline-flex p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">{currentStep.icon}</div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">policyHQ Sales</h2>
                 <div className="grid grid-cols-1 gap-3 text-left">
@@ -318,14 +349,14 @@ const App: React.FC = () => {
                     <p className="text-[9px] font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-widest mb-1.5">Agent</p>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-100 dark:border-gray-600"><User className="w-4 h-4" /></div>
-                      <div><h3 className="font-bold text-xs">{agent?.name || '...'}</h3><p className="text-[10px] text-gray-500">{agent?.agency}</p></div>
+                      <div><h3 className="font-bold text-xs text-gray-900 dark:text-white">{agent?.name || '...'}</h3><p className="text-[10px] text-gray-500">{agent?.agency}</p></div>
                     </div>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
                     <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Client</p>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-100 dark:border-gray-600"><Briefcase className="w-4 h-4" /></div>
-                      <div><h3 className="font-bold text-xs">{contact ? `${contact.firstName} ${contact.lastName}` : 'Guest'}</h3><p className="text-[10px] text-gray-500">{contact?.phone || 'No phone'}</p></div>
+                      <div><h3 className="font-bold text-xs text-gray-900 dark:text-white">{contact ? `${contact.firstName} ${contact.lastName}` : 'Guest'}</h3><p className="text-[10px] text-gray-500">{contact?.phone || 'No phone'}</p></div>
                     </div>
                   </div>
                 </div>
