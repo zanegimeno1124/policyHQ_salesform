@@ -66,14 +66,42 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
       
       {/* Q1: Policy Number */}
       <div>
-        <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Policy Number <span className="text-red-500">*</span></label>
-        <input
-          type="text"
-          value={formData.policyNumber}
-          onChange={(e) => updateField('policyNumber', e.target.value)}
-          className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
-          placeholder="Enter Policy Number"
-        />
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200">
+            Policy Number {formData.policyNumberAvailable && <span className="text-red-500">*</span>}
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !formData.policyNumberAvailable;
+              updateField('policyNumberAvailable', next);
+              if (!next) updateField('policyNumber', '');
+            }}
+            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1 ${
+              formData.policyNumberAvailable ? 'bg-yellow-400' : 'bg-gray-300 dark:bg-gray-600'
+            }`}
+            role="switch"
+            aria-checked={formData.policyNumberAvailable}
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                formData.policyNumberAvailable ? 'translate-x-4' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+        {formData.policyNumberAvailable && (
+          <input
+            type="text"
+            value={formData.policyNumber}
+            onChange={(e) => updateField('policyNumber', e.target.value)}
+            className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
+            placeholder="Enter Policy Number"
+          />
+        )}
+        {!formData.policyNumberAvailable && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">Toggle on when the policy number is available.</p>
+        )}
       </div>
 
       {/* Q2: Carrier */}

@@ -63,7 +63,7 @@ const convertEmptyStringsToNull = (obj: any): any => {
 
 const INITIAL_DATA: SurveyData = {
   statusId: '', statusName: '', pendingFollowUp: '', appointmentHighlights: 'NA',
-  splits: [], policyNumber: 'NA', carrierId: '', carrierName: '', product: '',
+  splits: [], policyNumberAvailable: false, policyNumber: '', carrierId: '', carrierName: '', product: '',
   initialDraftDate: '', recurringDraftDay: '', faceAmount: '', beneficiary: '',
   monthlyPremium: '', annualPremium: '', 
   transferAmount: '', clientAge: '', lengthOfAnnuity: '',
@@ -173,8 +173,11 @@ const App: React.FC = () => {
       const isAnnuity = formData.typeName.toLowerCase().includes('annuity');
       
       // Common required fields for all policies
-      if (!formData.policyNumber || !formData.carrierId || !formData.product || !formData.initialDraftDate) {
+      if (!formData.carrierId || !formData.product || !formData.initialDraftDate) {
         return alert("Fill required policy fields.");
+      }
+      if (formData.policyNumberAvailable && !formData.policyNumber) {
+        return alert("Enter policy number or mark it as unavailable.");
       }
       
       // Annuity-specific required fields
@@ -231,9 +234,10 @@ const App: React.FC = () => {
         
         if (isAnnuity) {
           // For annuity, group annuity-specific fields
-          const { transferAmount, clientAge, lengthOfAnnuity, ...baseData } = formData;
+          const { transferAmount, clientAge, lengthOfAnnuity, policyNumberAvailable, ...baseData } = formData;
           payload = {
             ...baseData,
+            policyNumber: formData.policyNumberAvailable ? formData.policyNumber : null,
             policyCreatedDate: toLocalTimestampWithCurrentTime(formData.policyCreatedDate),
             agent_id: finalAgentId,
             contact_id: contact?.contactId || null,
@@ -247,8 +251,10 @@ const App: React.FC = () => {
           };
         } else {
           // For regular policies, send all data as before
+          const { policyNumberAvailable, ...baseFormData } = formData;
           payload = {
-            ...formData,
+            ...baseFormData,
+            policyNumber: formData.policyNumberAvailable ? formData.policyNumber : null,
             policyCreatedDate: toLocalTimestampWithCurrentTime(formData.policyCreatedDate),
             agent_id: finalAgentId,
             contact_id: contact?.contactId || null,

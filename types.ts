@@ -25,6 +25,7 @@ export interface SurveyData {
   splits: Split[];
 
   // Step 4: Policy Information
+  policyNumberAvailable: boolean;
   policyNumber: string;
   carrierId: string;
   carrierName: string;
