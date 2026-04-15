@@ -81,6 +81,21 @@ export const api = {
     }
   },
 
+  validatePolicyNumber: async (authToken: string, policyNumber: string): Promise<boolean> => {
+    const response = await fetch(`${API_BASE}/policy/validator`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ policyNumber }),
+    });
+    if (!response.ok) throw new Error("Policy number validation failed");
+    const data = await response.json();
+    // API returns true = duplicate (reject), false = available (accept)
+    return data === true || data?.result === true || data?.exists === true || data?.duplicate === true;
+  },
+
   validateAgent: async (authToken: string, npn: string): Promise<ValidatedAgent> => {
     try {
       const response = await fetch(`${API_BASE}/agent/${npn}/validate`, {

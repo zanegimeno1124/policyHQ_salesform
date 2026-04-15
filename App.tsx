@@ -63,7 +63,7 @@ const convertEmptyStringsToNull = (obj: any): any => {
 
 const INITIAL_DATA: SurveyData = {
   statusId: '', statusName: '', pendingFollowUp: '', appointmentHighlights: 'NA',
-  splits: [], policyNumberAvailable: false, policyNumber: '', carrierId: '', carrierName: '', product: '',
+  splits: [], policyNumberAvailable: false, policyNumber: '', policyNumberValid: null, carrierId: '', carrierName: '', product: '',
   initialDraftDate: '', recurringDraftDay: '', faceAmount: '', beneficiary: '',
   monthlyPremium: '', annualPremium: '', 
   transferAmount: '', clientAge: '', lengthOfAnnuity: '',
@@ -179,6 +179,10 @@ const App: React.FC = () => {
       if (formData.policyNumberAvailable && !formData.policyNumber) {
         return alert("Enter policy number or mark it as unavailable.");
       }
+      if (formData.policyNumberAvailable && formData.policyNumber) {
+        if (formData.policyNumberValid === null) return alert("Please wait for policy number validation to complete.");
+        if (formData.policyNumberValid === false) return alert("Policy number already exists. Please use a different policy number.");
+      }
       
       // Annuity-specific required fields
       if (isAnnuity) {
@@ -234,7 +238,7 @@ const App: React.FC = () => {
         
         if (isAnnuity) {
           // For annuity, group annuity-specific fields
-          const { transferAmount, clientAge, lengthOfAnnuity, policyNumberAvailable, ...baseData } = formData;
+          const { transferAmount, clientAge, lengthOfAnnuity, policyNumberAvailable, policyNumberValid, ...baseData } = formData;
           payload = {
             ...baseData,
             policyNumber: formData.policyNumberAvailable ? formData.policyNumber : null,
@@ -251,7 +255,7 @@ const App: React.FC = () => {
           };
         } else {
           // For regular policies, send all data as before
-          const { policyNumberAvailable, ...baseFormData } = formData;
+          const { policyNumberAvailable, policyNumberValid, ...baseFormData } = formData;
           payload = {
             ...baseFormData,
             policyNumber: formData.policyNumberAvailable ? formData.policyNumber : null,

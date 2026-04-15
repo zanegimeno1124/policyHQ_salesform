@@ -27,6 +27,7 @@ export interface SurveyData {
   // Step 4: Policy Information
   policyNumberAvailable: boolean;
   policyNumber: string;
+  policyNumberValid: boolean | null; // null = not validated, true = valid, false = duplicate
   carrierId: string;
   carrierName: string;
   product: string;

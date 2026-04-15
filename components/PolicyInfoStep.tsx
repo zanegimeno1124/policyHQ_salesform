@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SurveyData, MetaOption } from '../types';
 import { api } from '../services/api';
 import { SearchableDropdown } from './SearchableDropdown';
@@ -13,6 +13,8 @@ interface PolicyInfoStepProps {
 export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authToken, updateField }) => {
   const [carriers, setCarriers] = useState<MetaOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [policyNumValidating, setPolicyNumValidating] = useState(false);
+  const validationDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check if the selected type is annuity
   const isAnnuity = formData.typeName.toLowerCase().includes('annuity');
@@ -61,6 +63,29 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
     }
   };
 
+  const handlePolicyNumberBlur = async () => {
+    const value = formData.policyNumber.trim();
+    if (!value) return;
+    if (validationDebounceRef.current) clearTimeout(validationDebounceRef.current);
+    setPolicyNumValidating(true);
+    updateField('policyNumberValid', null);
+    try {
+      const isDuplicate = await api.validatePolicyNumber(authToken!, value);
+      // isDuplicate true = already exists (reject), false = available (accept)
+      updateField('policyNumberValid', !isDuplicate);
+    } catch {
+      // On network error, allow proceeding
+      updateField('policyNumberValid', true);
+    } finally {
+      setPolicyNumValidating(false);
+    }
+  };
+
+  const handlePolicyNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('policyNumber', e.target.value);
+    updateField('policyNumberValid', null);
+  };
+
   return (
     <div className="space-y-4">
       
@@ -75,7 +100,10 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
             onClick={() => {
               const next = !formData.policyNumberAvailable;
               updateField('policyNumberAvailable', next);
-              if (!next) updateField('policyNumber', '');
+              if (!next) {
+                updateField('policyNumber', '');
+                updateField('policyNumberValid', null);
+              }
             }}
             className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-1 ${
               formData.policyNumberAvailable ? 'bg-yellow-400' : 'bg-gray-300 dark:bg-gray-600'
@@ -91,13 +119,46 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
           </button>
         </div>
         {formData.policyNumberAvailable && (
-          <input
-            type="text"
-            value={formData.policyNumber}
-            onChange={(e) => updateField('policyNumber', e.target.value)}
-            className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
-            placeholder="Enter Policy Number"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={formData.policyNumber}
+              onChange={handlePolicyNumberChange}
+              onBlur={handlePolicyNumberBlur}
+              className={`w-full p-2.5 pr-9 bg-gray-50 dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm ${
+                formData.policyNumberValid === false
+                  ? 'border-red-400 dark:border-red-500'
+                  : formData.policyNumberValid === true
+                  ? 'border-green-400 dark:border-green-500'
+                  : 'border-gray-200 dark:border-gray-600'
+              }`}
+              placeholder="Enter Policy Number"
+            />
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+              {policyNumValidating && (
+                <svg className="animate-spin h-4 w-4 text-yellow-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {!policyNumValidating && formData.policyNumberValid === true && (
+                <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {!policyNumValidating && formData.policyNumberValid === false && (
+                <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </div>
+          </div>
+        )}
+        {formData.policyNumberAvailable && formData.policyNumberValid === false && (
+          <p className="text-xs text-red-500 mt-1">This policy number already exists. Please use a different one.</p>
+        )}
+        {formData.policyNumberAvailable && formData.policyNumberValid === true && (
+          <p className="text-xs text-green-500 mt-1">Policy number is available.</p>
         )}
         {!formData.policyNumberAvailable && (
           <p className="text-xs text-gray-500 dark:text-gray-400">Toggle on when the policy number is available.</p>
