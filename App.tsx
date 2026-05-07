@@ -292,9 +292,26 @@ const App: React.FC = () => {
   }, [currentStepIndex]);
 
   const handleReset = useCallback(() => {
-    setFormData({ ...INITIAL_DATA, policyCreatedDate: getLocalISODate(), name: agent?.name || '', isOwnSale: !!agent?.agent_id, policyHolder: contact ? `${contact.firstName} ${contact.lastName}`.trim() : '' });
+    setFormData(prev => ({
+      ...INITIAL_DATA,
+      name: agent?.name || '',
+      // Retain Step 1 (preliminary) — Q1: own sale / agent, Q2: policy date — except Q3 policy type
+      isOwnSale: prev.isOwnSale,
+      submissionAgentNpn: prev.submissionAgentNpn,
+      submissionAgentId: prev.submissionAgentId,
+      submissionAgentName: prev.submissionAgentName,
+      isPolicyCreatedToday: prev.isPolicyCreatedToday,
+      policyCreatedDate: prev.policyCreatedDate,
+      // typeId / typeName reset (Q3 policy type)
+      // Retain Step 2 (clientInfo) fields
+      policyHolder: prev.policyHolder,
+      state: prev.state,
+      sourceId: prev.sourceId,
+      sourceName: prev.sourceName,
+      // Steps 3, 4, 5 reset to INITIAL_DATA defaults
+    }));
     setCurrentStepIndex(0); setAppState('ready'); setIsSubmitting(false);
-  }, [agent, contact]);
+  }, [agent]);
 
   if (appState === 'initializing') return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950"><Loader2 className="w-8 h-8 text-yellow-500 animate-spin" /></div>;
   if (appState === 'restricted') return <div className="min-h-screen flex items-center justify-center text-center p-6"><Lock className="w-12 h-12 text-red-500 mx-auto mb-4" /><p>Restricted Access</p></div>;
