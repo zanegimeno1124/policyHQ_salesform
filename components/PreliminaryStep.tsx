@@ -15,6 +15,8 @@ interface PreliminaryStepProps {
 export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, authToken, updateField, currentUserHasAgentId }) => {
   const [npnLoading, setNpnLoading] = useState(false);
   const [npnError, setNpnError] = useState<string | null>(null);
+  const [trainerNpnLoading, setTrainerNpnLoading] = useState(false);
+  const [trainerNpnError, setTrainerNpnError] = useState<string | null>(null);
   const [types, setTypes] = useState<MetaOption[]>([]);
   const [typesLoading, setTypesLoading] = useState(true);
   const [previousTypeName, setPreviousTypeName] = useState<string>(formData.typeName);
@@ -46,6 +48,26 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
       setNpnError('Invalid NPN.');
       updateField('submissionAgentId', ''); updateField('submissionAgentName', '');
     } finally { setNpnLoading(false); }
+  };
+
+  const handleTrainerNpnValidation = async () => {
+    if (!authToken || !formData.trainerNpn) return;
+    setTrainerNpnLoading(true); setTrainerNpnError(null);
+    try {
+      const result = await api.validateAgent(authToken, formData.trainerNpn);
+      updateField('trainerAgentId', result.agent_id);
+      updateField('trainerAgentName', result.agent_name);
+    } catch (err) {
+      setTrainerNpnError('Invalid NPN.');
+      updateField('trainerAgentId', ''); updateField('trainerAgentName', '');
+    } finally { setTrainerNpnLoading(false); }
+  };
+
+  const clearTrainerFields = () => {
+    updateField('trainerNpn', '');
+    updateField('trainerAgentId', '');
+    updateField('trainerAgentName', '');
+    setTrainerNpnError(null);
   };
 
   const handleTypeChange = (opt: MetaOption) => {
@@ -156,6 +178,60 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">2</span>
+          <h3 className="text-xs font-bold text-gray-900 dark:text-white">Did a trainer help you place this sale?*</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => updateField('trainerAssisted', true)}
+            className={`py-2 px-3 rounded-lg font-bold transition-all border-2 text-xs ${
+              formData.trainerAssisted 
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400' 
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
+            }`}
+          >Yes</button>
+          <button
+            onClick={() => { updateField('trainerAssisted', false); clearTrainerFields(); }}
+            className={`py-2 px-3 rounded-lg font-bold transition-all border-2 text-xs ${
+              !formData.trainerAssisted 
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400' 
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
+            }`}
+          >No</button>
+        </div>
+
+        {formData.trainerAssisted && (
+          <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 animate-in fade-in slide-in-from-top-2">
+            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Trainer NPN *</label>
+            <div className="flex gap-2">
+              <input
+                type="number" value={formData.trainerNpn}
+                onChange={(e) => { updateField('trainerNpn', e.target.value); updateField('trainerAgentId', ''); updateField('trainerAgentName', ''); setTrainerNpnError(null); }}
+                className="flex-1 p-2 border border-gray-200 dark:border-gray-700 rounded-lg outline-none text-xs bg-white dark:bg-gray-800"
+                placeholder="Enter Trainer NPN"
+              />
+              <button
+                onClick={handleTrainerNpnValidation}
+                disabled={trainerNpnLoading || !formData.trainerNpn || !!formData.trainerAgentId}
+                className={`px-4 rounded-lg text-xs font-bold transition-all ${
+                  formData.trainerAgentId ? 'bg-green-500 text-white' : 'bg-black dark:bg-white text-white dark:text-black'
+                }`}
+              >
+                {trainerNpnLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : formData.trainerAgentId ? <CheckCircle2 className="w-3.5 h-3.5" /> : 'Validate'}
+              </button>
+            </div>
+            {trainerNpnError && <p className="text-red-500 text-[10px] mt-1.5 font-medium">{trainerNpnError}</p>}
+            {formData.trainerAgentName && (
+              <div className="mt-2 p-2 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-100 dark:border-green-900 text-green-700 dark:text-green-400 text-[10px] font-bold flex items-center gap-1.5">
+                <UserCheck className="w-3 h-3" /> {formData.trainerAgentName}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">3</span>
           <h3 className="text-xs font-bold text-gray-900 dark:text-white">Created today?*</h3>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -185,7 +261,7 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">3</span>
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">4</span>
           <h3 className="text-xs font-bold text-gray-900 dark:text-white">Policy Type*</h3>
         </div>
         <SearchableDropdown

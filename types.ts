@@ -56,6 +56,10 @@ export interface SurveyData {
   submissionAgentNpn: string;
   submissionAgentId: string;
   submissionAgentName: string;
+  trainerAssisted: boolean;
+  trainerNpn: string;
+  trainerAgentId: string;
+  trainerAgentName: string;
   isPolicyCreatedToday: boolean;
   policyCreatedDate: string; // ISO Date string
 

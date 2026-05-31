@@ -70,6 +70,7 @@ const INITIAL_DATA: SurveyData = {
   policyHolder: '', state: '',
   sourceId: '', sourceName: '', typeId: '', typeName: '',
   isOwnSale: true, submissionAgentNpn: '', submissionAgentId: '', submissionAgentName: '',
+  trainerAssisted: false, trainerNpn: '', trainerAgentId: '', trainerAgentName: '',
   isPolicyCreatedToday: true, policyCreatedDate: getLocalISODate(),
   name: '', currentRole: '', experienceLevel: 'Entry', skills: '', workStyle: 'Hybrid', interests: '',
 };
@@ -158,6 +159,7 @@ const App: React.FC = () => {
       if (!formData.typeId) return alert("Select lead type.");
       // Q1: If not own sale, agent NPN must be validated
       if (!formData.isOwnSale && !formData.submissionAgentId) return alert("Validate writing agent NPN.");
+      if (formData.trainerAssisted && !formData.trainerAgentId) return alert("Validate trainer NPN.");
       // Q2: Policy date must be selected
       if (!formData.policyCreatedDate) return alert("Select policy date.");
     }
