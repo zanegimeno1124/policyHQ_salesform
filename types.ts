@@ -48,6 +48,11 @@ export interface SurveyData {
   state: string;
   sourceId: string;
   sourceName: string;
+  updateOutboundLogActivity: boolean;
+  outboundLogDials: number | null;
+  outboundLogContacts: number | null;
+  outboundLogSits: number | null;
+  outboundLogSales: number | null;
   typeId: string;
   typeName: string;
 

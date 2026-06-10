@@ -68,7 +68,9 @@ const INITIAL_DATA: SurveyData = {
   monthlyPremium: '', annualPremium: '', 
   transferAmount: '', clientAge: '', lengthOfAnnuity: '',
   policyHolder: '', state: '',
-  sourceId: '', sourceName: '', typeId: '', typeName: '',
+  sourceId: '', sourceName: '',
+  updateOutboundLogActivity: false, outboundLogDials: null, outboundLogContacts: null, outboundLogSits: null, outboundLogSales: null,
+  typeId: '', typeName: '',
   isOwnSale: true, submissionAgentNpn: '', submissionAgentId: '', submissionAgentName: '',
   trainerAssisted: false, trainerNpn: '', trainerAgentId: '', trainerAgentName: '',
   isPolicyCreatedToday: true, policyCreatedDate: getLocalISODate(),
@@ -313,6 +315,11 @@ const App: React.FC = () => {
       state: prev.state,
       sourceId: prev.sourceId,
       sourceName: prev.sourceName,
+      updateOutboundLogActivity: prev.updateOutboundLogActivity,
+      outboundLogDials: prev.outboundLogDials,
+      outboundLogContacts: prev.outboundLogContacts,
+      outboundLogSits: prev.outboundLogSits,
+      outboundLogSales: prev.outboundLogSales,
       // Steps 3, 4, 5 reset to INITIAL_DATA defaults
     }));
     setCurrentStepIndex(0); setAppState('ready'); setIsSubmitting(false);

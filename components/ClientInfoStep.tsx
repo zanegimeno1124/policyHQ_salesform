@@ -33,6 +33,31 @@ export const ClientInfoStep: React.FC<ClientInfoStepProps> = ({ formData, authTo
   const [sources, setSources] = useState<MetaOption[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const outboundLogFields: Array<{ field: keyof SurveyData; label: string; value: number | null }> = [
+    { field: 'outboundLogDials', label: 'Dials', value: formData.outboundLogDials },
+    { field: 'outboundLogContacts', label: 'Contacts', value: formData.outboundLogContacts },
+    { field: 'outboundLogSits', label: 'Sits', value: formData.outboundLogSits },
+    { field: 'outboundLogSales', label: 'Sales', value: formData.outboundLogSales },
+  ];
+
+  const updateOutboundLogCount = (field: keyof SurveyData, value: string) => {
+    updateField(field, value === '' ? null : Math.max(0, Math.floor(Number(value) || 0)));
+  };
+
+  const clearOutboundLogFields = () => {
+    updateField('outboundLogDials', null);
+    updateField('outboundLogContacts', null);
+    updateField('outboundLogSits', null);
+    updateField('outboundLogSales', null);
+  };
+
+  const initializeOutboundLogFields = () => {
+    updateField('outboundLogDials', formData.outboundLogDials ?? 0);
+    updateField('outboundLogContacts', formData.outboundLogContacts ?? 0);
+    updateField('outboundLogSits', formData.outboundLogSits ?? 0);
+    updateField('outboundLogSales', formData.outboundLogSales ?? 0);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!authToken) return;
@@ -86,6 +111,51 @@ export const ClientInfoStep: React.FC<ClientInfoStepProps> = ({ formData, authTo
         placeholder="Select Source"
         loading={loading}
       />
+
+      <div className="space-y-3">
+        <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200">Would you like to update outbound log activity?</label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => { updateField('updateOutboundLogActivity', true); initializeOutboundLogFields(); }}
+            className={`py-2 px-3 rounded-lg font-bold transition-all border-2 text-xs ${
+              formData.updateOutboundLogActivity
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400'
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
+            }`}
+          >
+            Yes
+          </button>
+          <button
+            onClick={() => { updateField('updateOutboundLogActivity', false); clearOutboundLogFields(); }}
+            className={`py-2 px-3 rounded-lg font-bold transition-all border-2 text-xs ${
+              !formData.updateOutboundLogActivity
+                ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400'
+                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
+            }`}
+          >
+            No
+          </button>
+        </div>
+
+        {formData.updateOutboundLogActivity && (
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+            {outboundLogFields.map(({ field, label, value }) => (
+              <div key={field}>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">{label}</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={value ?? ''}
+                  onChange={(e) => updateOutboundLogCount(field, e.target.value)}
+                  className="w-full p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none text-xs text-gray-900 dark:text-white"
+                  placeholder="0"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
     </div>
   );
