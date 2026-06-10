@@ -118,6 +118,8 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
+  const closeTypes = ['One Call Close', 'Appointment', 'Call In', 'Follow Up'];
+
   return (
     <div className="space-y-5">
       <section className="space-y-3">
@@ -273,6 +275,44 @@ export const PreliminaryStep: React.FC<PreliminaryStepProps> = ({ formData, auth
           placeholder="Select Type"
           loading={typesLoading}
         />
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">5</span>
+          <h3 className="text-xs font-bold text-gray-900 dark:text-white">Referrals collected*</h3>
+        </div>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          value={formData.referralsCollected}
+          onChange={(e) => updateField('referralsCollected', Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+          className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
+          placeholder="0"
+        />
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-black font-black text-[9px]">6</span>
+          <h3 className="text-xs font-bold text-gray-900 dark:text-white">Close Type*</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {closeTypes.map((closeType) => (
+            <button
+              key={closeType}
+              onClick={() => updateField('closeType', closeType)}
+              className={`py-2 px-3 rounded-lg font-bold transition-all border-2 text-xs ${
+                formData.closeType === closeType
+                  ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10 text-black dark:text-yellow-400'
+                  : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-400'
+              }`}
+            >
+              {closeType}
+            </button>
+          ))}
+        </div>
       </section>
     </div>
   );

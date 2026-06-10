@@ -72,6 +72,7 @@ const INITIAL_DATA: SurveyData = {
   isOwnSale: true, submissionAgentNpn: '', submissionAgentId: '', submissionAgentName: '',
   trainerAssisted: false, trainerNpn: '', trainerAgentId: '', trainerAgentName: '',
   isPolicyCreatedToday: true, policyCreatedDate: getLocalISODate(),
+  referralsCollected: 0, closeType: '',
   name: '', currentRole: '', experienceLevel: 'Entry', skills: '', workStyle: 'Hybrid', interests: '',
 };
 
@@ -162,6 +163,8 @@ const App: React.FC = () => {
       if (formData.trainerAssisted && !formData.trainerAgentId) return alert("Validate trainer NPN.");
       // Q2: Policy date must be selected
       if (!formData.policyCreatedDate) return alert("Select policy date.");
+      if (!Number.isInteger(formData.referralsCollected) || formData.referralsCollected < 0) return alert("Enter referrals collected.");
+      if (!formData.closeType) return alert("Select close type.");
     }
     
     if (currentStep.id === 'clientInfo') {

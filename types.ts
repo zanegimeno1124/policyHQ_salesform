@@ -62,6 +62,8 @@ export interface SurveyData {
   trainerAgentName: string;
   isPolicyCreatedToday: boolean;
   policyCreatedDate: string; // ISO Date string
+  referralsCollected: number;
+  closeType: string;
 
   // Existing fields
   name: string;
