@@ -12,7 +12,9 @@ interface PolicyInfoStepProps {
 
 export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authToken, updateField }) => {
   const [carriers, setCarriers] = useState<MetaOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [carriersLoading, setCarriersLoading] = useState(true);
+  const [commissionTypes, setCommissionTypes] = useState<MetaOption[]>([]);
+  const [commissionTypesLoading, setCommissionTypesLoading] = useState(true);
   const [policyNumValidating, setPolicyNumValidating] = useState(false);
   const validationDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -34,11 +36,27 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
       } catch (error) {
         console.error("Failed to fetch carriers", error);
       } finally {
-        setLoading(false);
+        setCarriersLoading(false);
       }
     };
 
     fetchCarriers();
+  }, [authToken]);
+
+  useEffect(() => {
+    const fetchCommissionTypes = async () => {
+      if (!authToken) return;
+      try {
+        const fetchedCommissionTypes = await api.getCommissionTypes(authToken);
+        setCommissionTypes(fetchedCommissionTypes);
+      } catch (error) {
+        console.error("Failed to fetch commission types", error);
+      } finally {
+        setCommissionTypesLoading(false);
+      }
+    };
+
+    fetchCommissionTypes();
   }, [authToken]);
 
   // Auto-calculate Annual Premium
@@ -176,10 +194,20 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
           updateField('carrierName', opt.name);
         }}
         placeholder="Select Carrier"
-        loading={loading}
+        loading={carriersLoading}
       />
 
-      {/* Q3: Product */}
+      {/* Q3: Commission Type */}
+      <SearchableDropdown
+        label="Commission Type *"
+        options={commissionTypes}
+        value={formData.commissionType}
+        onChange={(opt) => updateField('commissionType', opt.id)}
+        placeholder="Select Commission Type"
+        loading={commissionTypesLoading}
+      />
+
+      {/* Q4: Product */}
       <div>
         <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Product <span className="text-red-500">*</span></label>
         <input

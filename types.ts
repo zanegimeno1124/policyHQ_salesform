@@ -30,6 +30,7 @@ export interface SurveyData {
   policyNumberValid: boolean | null; // null = not validated, true = valid, false = duplicate
   carrierId: string;
   carrierName: string;
+  commissionType: string;
   product: string;
   initialDraftDate: string;
   recurringDraftDay: string; // Storing as string to handle empty state easily in inputs

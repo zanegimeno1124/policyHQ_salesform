@@ -63,7 +63,7 @@ const convertEmptyStringsToNull = (obj: any): any => {
 
 const INITIAL_DATA: SurveyData = {
   statusId: '', statusName: '', pendingFollowUp: '', appointmentHighlights: 'NA',
-  splits: [], policyNumberAvailable: false, policyNumber: '', policyNumberValid: null, carrierId: '', carrierName: '', product: '',
+  splits: [], policyNumberAvailable: false, policyNumber: '', policyNumberValid: null, carrierId: '', carrierName: '', commissionType: '', product: '',
   initialDraftDate: '', recurringDraftDay: '', faceAmount: '', beneficiary: '',
   monthlyPremium: '', annualPremium: '', 
   transferAmount: '', clientAge: '', lengthOfAnnuity: '',
@@ -180,7 +180,7 @@ const App: React.FC = () => {
       const isAnnuity = formData.typeName.toLowerCase().includes('annuity');
       
       // Common required fields for all policies
-      if (!formData.carrierId || !formData.product || !formData.initialDraftDate) {
+      if (!formData.carrierId || !formData.commissionType || !formData.product || !formData.initialDraftDate) {
         return alert("Fill required policy fields.");
       }
       if (formData.policyNumberAvailable && !formData.policyNumber) {
@@ -326,8 +326,35 @@ const App: React.FC = () => {
   }, [agent]);
 
   if (appState === 'initializing') return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950"><Loader2 className="w-8 h-8 text-yellow-500 animate-spin" /></div>;
-  if (appState === 'restricted') return <div className="min-h-screen flex items-center justify-center text-center p-6"><Lock className="w-12 h-12 text-red-500 mx-auto mb-4" /><p>Restricted Access</p></div>;
-  if (appState === 'error') return <div className="min-h-screen flex items-center justify-center text-center p-6"><ShieldAlert className="w-12 h-12 text-yellow-600 mx-auto mb-4" /><p>{initError}</p><button onClick={() => window.location.reload()} className="mt-4 px-6 py-2 bg-gray-900 text-white rounded-lg">Retry</button></div>;
+  if (appState === 'restricted') return (
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center p-6">
+      <div className="flex max-w-sm flex-col items-center text-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/40">
+          <Lock className="h-6 w-6 text-red-500" />
+        </div>
+        <h1 className="text-base font-bold text-gray-900 dark:text-white">Restricted Access</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          This form requires an authorized PolicyHQ link.
+        </p>
+      </div>
+    </div>
+  );
+  if (appState === 'error') return (
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center p-6">
+      <div className="flex max-w-sm flex-col items-center text-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-50 dark:bg-yellow-950/40">
+          <ShieldAlert className="h-6 w-6 text-yellow-600" />
+        </div>
+        <p className="text-sm font-medium text-gray-900 dark:text-white">{initError}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-lg bg-gray-900 px-6 py-2 text-sm font-bold text-white dark:bg-white dark:text-gray-900"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  );
 
   if (appState === 'submitted') return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center animate-in fade-in">

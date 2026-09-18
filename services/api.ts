@@ -1,6 +1,7 @@
 import { AuthResponse, ContactInfo, UserInfo, ValidatedAgent, MetaOption } from "../types";
 
 const API_BASE = "https://api1.simplyworkcrm.com/api:xyNb4DPW";
+const COMMISSION_TYPE_SCHEMA_URL = "https://api1.simplyworkcrm.com/api:SZgR1JsR/sales_form/schema/commission_type";
 
 export const api = {
   login: async (user_id: string, location_id: string): Promise<string> => {
@@ -199,6 +200,39 @@ export const api = {
 
     } catch (error) {
       console.error("Get Carriers Error:", error);
+      return [];
+    }
+  },
+
+  getCommissionTypes: async (authToken: string): Promise<MetaOption[]> => {
+    try {
+      const response = await fetch(COMMISSION_TYPE_SCHEMA_URL, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch commission types");
+      }
+
+      const data = await response.json();
+      const list = Array.isArray(data) ? data : (data.options || data.data || []);
+
+      return list.map((item: any) => {
+        const value = typeof item === "string"
+          ? item
+          : String(item.value || item.id || item.key || item.name || item.label || "");
+        const label = typeof item === "string"
+          ? item.replace(/\b\w/g, (character) => character.toUpperCase())
+          : item.label || item.name || value;
+
+        return { id: value, name: label };
+      }).filter((item: MetaOption) => item.id);
+    } catch (error) {
+      console.error("Get Commission Types Error:", error);
       return [];
     }
   },
