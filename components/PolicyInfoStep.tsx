@@ -18,8 +18,10 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
   const [policyNumValidating, setPolicyNumValidating] = useState(false);
   const validationDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Check if the selected type is annuity
-  const isAnnuity = formData.typeName.toLowerCase().includes('annuity');
+  const normalizedTypeName = formData.typeName.toLowerCase();
+  const isAnnuity = normalizedTypeName.includes('annuity');
+  const isViatical = normalizedTypeName.includes('viatical');
+  const usesTransferFields = isAnnuity || isViatical;
 
   // Generate length of annuity options (1-20 years)
   const lengthOfAnnuityOptions: MetaOption[] = Array.from({ length: 20 }, (_, i) => ({
@@ -59,18 +61,19 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
     fetchCommissionTypes();
   }, [authToken]);
 
-  // Auto-calculate Annual Premium
+  // Auto-calculate Annual Premium from the visible premium source.
   useEffect(() => {
-    const monthly = parseFloat(formData.monthlyPremium);
-    if (!isNaN(monthly)) {
-      const annual = (monthly * 12).toFixed(2);
+    const sourceAmount = isViatical ? formData.transferAmount : formData.monthlyPremium;
+    const amount = parseFloat(sourceAmount);
+    if (!isNaN(amount)) {
+      const annual = (amount * (isViatical ? 0.1 : 12)).toFixed(2);
       if (annual !== formData.annualPremium) {
         updateField('annualPremium', annual);
       }
     } else if (formData.annualPremium !== '') {
         updateField('annualPremium', '');
     }
-  }, [formData.monthlyPremium, formData.annualPremium, updateField]);
+  }, [formData.monthlyPremium, formData.transferAmount, formData.annualPremium, isViatical, updateField]);
 
   const handleRecurringDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value);
@@ -209,7 +212,9 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
 
       {/* Q4: Product */}
       <div>
-        <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Product <span className="text-red-500">*</span></label>
+        <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">
+          Product {!isViatical && <span className="text-red-500">*</span>}
+        </label>
         <input
           type="text"
           value={formData.product}
@@ -219,9 +224,9 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
         />
       </div>
 
-      {/* Q4: Initial Draft Date */}
+      {/* Q4: Initial Draft Date / Transfer Date */}
       <div>
-         <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-2">Initial Draft Date <span className="text-red-500">*</span></label>
+         <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-2">{isViatical ? 'Transfer Date' : 'Initial Draft Date'} <span className="text-red-500">*</span></label>
          <DatePicker 
             selectedDate={formData.initialDraftDate} 
             onChange={(date) => updateField('initialDraftDate', date)}
@@ -229,7 +234,7 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
       </div>
 
       {/* Q5: Recurring Draft Day - Hidden for Annuity */}
-      {!isAnnuity && (
+      {!usesTransferFields && (
         <div>
           <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Recurring Draft Day (1-31) <span className="text-red-500">*</span></label>
           <input
@@ -244,40 +249,42 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
         </div>
       )}
 
-      {/* Face Amount and Beneficiary - Face Amount hidden for Annuity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Q6: Face Amount - Hidden for Annuity */}
-          {!isAnnuity && (
-            <div>
-              <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Face Amount (Optional)</label>
-              <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold text-sm">$</span>
-                  <input
-                  type="number"
-                  value={formData.faceAmount}
-                  onChange={(e) => updateField('faceAmount', e.target.value)}
-                  className="w-full p-2.5 pl-8 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
-                  placeholder="0.00"
-                  />
+      {/* Face Amount and Beneficiary - Hidden for Viatical */}
+      {!isViatical && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Q6: Face Amount - Hidden for Annuity */}
+            {!usesTransferFields && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Face Amount (Optional)</label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold text-sm">$</span>
+                    <input
+                    type="number"
+                    value={formData.faceAmount}
+                    onChange={(e) => updateField('faceAmount', e.target.value)}
+                    className="w-full p-2.5 pl-8 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
+                    placeholder="0.00"
+                    />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Q7: Beneficiary */}
-          <div className={!isAnnuity ? '' : 'md:col-span-2'}>
-            <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Beneficiary (Optional)</label>
-            <input
-                type="text"
-                value={formData.beneficiary}
-                onChange={(e) => updateField('beneficiary', e.target.value)}
-                className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
-                placeholder="Beneficiary Name"
-            />
-          </div>
-      </div>
+            {/* Q7: Beneficiary */}
+            <div className={!usesTransferFields ? '' : 'md:col-span-2'}>
+              <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Beneficiary (Optional)</label>
+              <input
+                  type="text"
+                  value={formData.beneficiary}
+                  onChange={(e) => updateField('beneficiary', e.target.value)}
+                  className="w-full p-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition text-gray-900 dark:text-white text-sm"
+                  placeholder="Beneficiary Name"
+              />
+            </div>
+        </div>
+      )}
 
       {/* Monthly Premium and Annual Premium - Hidden for Annuity */}
-      {!isAnnuity && (
+      {!usesTransferFields && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            {/* Q8: Monthly Premium */}
             <div>
@@ -312,13 +319,15 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
         </div>
       )}
 
-      {/* Annuity-specific fields - Only shown for Annuity */}
-      {isAnnuity && (
+      {/* Transfer-specific fields - Shown for Annuity and Viatical */}
+      {usesTransferFields && (
         <>
           {/* Transfer Amount */}
           <div>
             <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Transfer Amount <span className="text-red-500">*</span></label>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">How much is the amount of money the client will be transferring?</p>
+            {!isViatical && (
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">How much is the amount of money the client will be transferring?</p>
+            )}
             <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold text-sm">$</span>
                 <input
@@ -331,6 +340,22 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
                 />
             </div>
           </div>
+
+          {isViatical && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Annual Premium (Calculated)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold text-sm">$</span>
+                <input
+                  type="text"
+                  readOnly
+                  value={formData.annualPremium}
+                  className="w-full p-2.5 pl-8 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-gray-500 dark:text-gray-300 cursor-not-allowed text-sm"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Client Age */}
           <div>
@@ -347,13 +372,15 @@ export const PolicyInfoStep: React.FC<PolicyInfoStepProps> = ({ formData, authTo
           </div>
 
           {/* Length of Annuity */}
-          <SearchableDropdown
-            label="Length of Annuity *"
-            options={lengthOfAnnuityOptions}
-            value={formData.lengthOfAnnuity}
-            onChange={(opt) => updateField('lengthOfAnnuity', opt.id)}
-            placeholder="Select Length (Years)"
-          />
+          {isAnnuity && (
+            <SearchableDropdown
+              label="Length of Annuity *"
+              options={lengthOfAnnuityOptions}
+              value={formData.lengthOfAnnuity}
+              onChange={(opt) => updateField('lengthOfAnnuity', opt.id)}
+              placeholder="Select Length (Years)"
+            />
+          )}
         </>
       )}
     </div>

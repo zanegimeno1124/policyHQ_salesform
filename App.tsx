@@ -177,10 +177,12 @@ const App: React.FC = () => {
     }
     
     if (currentStep.id === 'policyInfo') {
-      const isAnnuity = formData.typeName.toLowerCase().includes('annuity');
+      const normalizedTypeName = formData.typeName.toLowerCase();
+      const isAnnuity = normalizedTypeName.includes('annuity');
+      const isViatical = normalizedTypeName.includes('viatical');
       
       // Common required fields for all policies
-      if (!formData.carrierId || !formData.commissionType || !formData.product || !formData.initialDraftDate) {
+      if (!formData.carrierId || !formData.commissionType || (!isViatical && !formData.product) || !formData.initialDraftDate) {
         return alert("Fill required policy fields.");
       }
       if (formData.policyNumberAvailable && !formData.policyNumber) {
@@ -195,6 +197,10 @@ const App: React.FC = () => {
       if (isAnnuity) {
         if (!formData.transferAmount || !formData.clientAge || !formData.lengthOfAnnuity) {
           return alert("Fill all required annuity fields.");
+        }
+      } else if (isViatical) {
+        if (!formData.transferAmount || !formData.clientAge) {
+          return alert("Fill all required viatical fields.");
         }
       } else {
         // Non-annuity required fields
